@@ -13,11 +13,35 @@ function def_func(function_def){
 function callfunc(function_def, fcontext){
     var exitfunc=false
     for(statement of function_def.statements){
-        var value = (function(fcontext,statement){
-          for(variable in fcontext)
-            eval(variable+"="+fcontext[variable])
-          return eval(statement)
-        })(fcontext,statement)
+        if(Array.isArray(statement)){
+            var value=undefined
+            if(statement[0]=='if'){
+                var idx=1
+                while(true){
+                    if(!(idx in statement)) break
+                    if(idx+1 in statement){
+                        if(true==eval_statement(fcontext,statement[idx])){
+                            value=eval_statement(fcontext,statement[idx+1])
+                            break
+                        }
+                    }else
+                    value=eval_statement(fcontext,statement[idx])
+                    idx+=2
+                }
+            }
+        }else{
+            var value=eval_statement(fcontext,statement)
+        }
+        
+        function eval_statement(fcontext,statement){
+            var value = (function(fcontext,statement){
+                for(variable in fcontext)
+                  eval(variable+"="+fcontext[variable])
+                return eval(statement)
+              })(fcontext,statement)
+            return value
+        }
+
         if(exitfunc==true) break
     }
     return value
@@ -30,10 +54,9 @@ def_func(def_mysum)
 console.log(mysum(14,3))
 ////////////// pow
 var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":[
-    `if(exponent<0) returned=1/mypow(base,-exponent)
-    else if(exponent==0) returned=1
-    else returned=mypow(base,exponent-1)*base`,
-    "returned"]}
+    ['if','exponent<0','1/mypow(base,-exponent)',
+    'exponent==0','1',
+    'mypow(base,exponent-1)*base']]}
 def_func(def_mypow)
 console.log(mypow(2,3))
 console.log(mypow(2,-1))
