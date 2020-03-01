@@ -11,6 +11,13 @@ function def_func(function_def){
 }
 
 function callfunc(function_def, fcontext){
+    function handle_argument(argument){
+        var specials=['if','print','block']
+        if(Array.isArray(argument) && argument.length>0 && specials.indexOf(argument[0])!=-1) return exec_statement(argument)
+        if(typeof argument=='string') return exec_statement(argument)
+        return argument
+    }
+
     for(statement of function_def.statements)
         var value=exec_statement(statement)
     
@@ -22,19 +29,19 @@ function callfunc(function_def, fcontext){
                 while(true){
                     if(!(idx in statement)) break
                     if(idx+1 in statement){
-                        if(true==eval_statement(fcontext,statement[idx])){
-                            value=eval_statement(fcontext, exec_statement(statement[idx+1]))
+                        if(true==handle_argument(statement[idx])){
+                            value=handle_argument(statement[idx+1])
                             break
                         }
                     }else
-                    value=eval_statement(fcontext,statement[idx])
+                    value=handle_argument(statement[idx])
                     idx+=2
                 }
             }else if(statement[0]=='print'){
-                var line=eval_statement(fcontext,statement[1])
+                var line=handle_argument(statement[1])
                 console.log(line)
-            }else{
-                for(var substatement of statement) value=exec_statement(substatement)
+            }else if(statement[0]=='block'){
+                for(var substatement of statement.slice(1)) value=exec_statement(substatement)
             }
         }else if(typeof statement=='string'){
             var value=eval_statement(fcontext,statement)
@@ -71,17 +78,15 @@ var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
 'exponent==0','1',
 'mypow(base,exponent-1)*base']]
 
-// breaking change introduced:
-// ! and $ sigils https://en.wikipedia.org/wiki/Sigil_(computer_programming)
-// UPDATE: no more needed... see below
 var statements4=[
     ['print','"abc"'], // passing a string
     ['print','variable_test'], // passing a variable
     ['print',[1,2,3]], // passing a list
     ['if','true',['print','"if reached"']],
-    ['if','true',[ // codeblock test
+    ['if','true',['block', // codeblock test
         ['print','123'],['print','456']
     ]],
+    ['print',['if','true','"if returned this value"']],
 ]
 /*
 [    
