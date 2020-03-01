@@ -28,6 +28,9 @@ function callfunc(function_def, fcontext){
                     value=eval_statement(fcontext,statement[idx])
                     idx+=2
                 }
+            }else if(statement[0]=='print'){
+                var line=eval_statement(fcontext,statement[1])
+                console.log(line)
             }
         }else if(typeof statement=='string'){
             var value=eval_statement(fcontext,statement)
@@ -63,10 +66,39 @@ else mypow(base,exponent-1)*base`]
 var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
 'exponent==0','1',
 'mypow(base,exponent-1)*base']]
+
+// breaking change introduced:
+// ! and $ sigils https://en.wikipedia.org/wiki/Sigil_(computer_programming)
+// UPDATE: no more needed... see below
+var statements4=[
+    ['print','"abc"'],
+    ['print','variable_test']
+    ]
+/*
+[    
+    ['assign','name','"Dario"'],
+    ['assign','line',['strcat','"My name is "','name']],
+    ['print','line'],
+]
+*/
+
+var statements5=[
+    ['assign','returned',
+        ['if','exponent<0','1/mypow(base,-exponent)',
+            'exponent==0','1',
+            'mypow(base,exponent-1)*base'],
+    ],
+    ['print','returned'], // print and return
+]
 var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements2 }
 def_func(def_mypow)
 console.log(mypow(2,3))
 console.log(mypow(2,-1))
+
+var def_my={"name":"my","arguments":[],"statements":statements4 }
+def_func(def_my)
+var variable_test='a variable for testing'
+my()
 
 /*
 myeval(['list', [1,2,3]])
