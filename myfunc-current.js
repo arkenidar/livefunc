@@ -11,8 +11,10 @@ function def_func(function_def){
 }
 
 function callfunc(function_def, fcontext){
-    var exitfunc=false
-    for(statement of function_def.statements){
+    for(statement of function_def.statements)
+        var value=exec_statement(statement)
+    
+    function exec_statement(statement){
         if(Array.isArray(statement)){
             var value=undefined
             if(statement[0]=='if'){
@@ -21,7 +23,7 @@ function callfunc(function_def, fcontext){
                     if(!(idx in statement)) break
                     if(idx+1 in statement){
                         if(true==eval_statement(fcontext,statement[idx])){
-                            value=eval_statement(fcontext,statement[idx+1])
+                            value=eval_statement(fcontext, exec_statement(statement[idx+1]))
                             break
                         }
                     }else
@@ -31,11 +33,15 @@ function callfunc(function_def, fcontext){
             }else if(statement[0]=='print'){
                 var line=eval_statement(fcontext,statement[1])
                 console.log(line)
+            }else{
+                for(var substatement of statement) value=exec_statement(substatement)
             }
         }else if(typeof statement=='string'){
             var value=eval_statement(fcontext,statement)
         }
         
+        return value
+
         function eval_statement(fcontext,statement){
             var value = (function(fcontext,statement){
                 for(variable in fcontext)
@@ -44,8 +50,6 @@ function callfunc(function_def, fcontext){
               })(fcontext,statement)
             return value
         }
-
-        if(exitfunc==true) break
     }
     return value
 }
@@ -71,9 +75,14 @@ var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
 // ! and $ sigils https://en.wikipedia.org/wiki/Sigil_(computer_programming)
 // UPDATE: no more needed... see below
 var statements4=[
-    ['print','"abc"'],
-    ['print','variable_test']
-    ]
+    ['print','"abc"'], // passing a string
+    ['print','variable_test'], // passing a variable
+    ['print',[1,2,3]], // passing a list
+    ['if','true',['print','"if reached"']],
+    ['if','true',[ // codeblock test
+        ['print','123'],['print','456']
+    ]],
+]
 /*
 [    
     ['assign','name','"Dario"'],
@@ -99,8 +108,3 @@ var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
 var variable_test='a variable for testing'
 my()
-
-/*
-myeval(['list', [1,2,3]])
-myeval(['block', statements])
-*/
