@@ -29,7 +29,7 @@ function callfunc(function_def, fcontext){
                     idx+=2
                 }
             }
-        }else{
+        }else if(typeof statement=='string'){
             var value=eval_statement(fcontext,statement)
         }
         
@@ -53,10 +53,22 @@ var def_mysum={"name":"mysum","arguments":["x","y"],
 def_func(def_mysum)
 console.log(mysum(14,3))
 ////////////// pow
-var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":[
-    ['if','exponent<0','1/mypow(base,-exponent)',
-    'exponent==0','1',
-    'mypow(base,exponent-1)*base']]}
+var statements1=[`if(exponent<0) returned=1/mypow(base,-exponent)
+else if(exponent==0) returned=1
+else returned=mypow(base,exponent-1)*base`,
+"returned"]
+var statements2=[`if(exponent<0) 1/mypow(base,-exponent)
+else if(exponent==0) 1
+else mypow(base,exponent-1)*base`]
+var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
+'exponent==0','1',
+'mypow(base,exponent-1)*base']]
+var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements2 }
 def_func(def_mypow)
 console.log(mypow(2,3))
 console.log(mypow(2,-1))
+
+/*
+myeval(['list', [1,2,3]])
+myeval(['block', statements])
+*/
