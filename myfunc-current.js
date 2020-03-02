@@ -12,8 +12,19 @@ function def_func(function_def){
 
 function callfunc(function_def, fcontext){
     function handle_argument(argument){
-        var specials=['if','print','block']
-        if(Array.isArray(argument) && argument.length>0 && specials.indexOf(argument[0])!=-1) return exec_statement(argument)
+        // bad for use of eval but quick to implement
+        ///var func=eval(argument[0])
+        var func // function or not
+        if(argument[0] in this && (func=this[argument[0]])
+        && typeof func=='function'){
+            var args=argument.slice(1)
+            return func(...args)
+        }
+
+        var specials=['if','print','block'] // automatically add others. make it more extensible
+        if(Array.isArray(argument) && argument.length>0 &&
+        (specials.indexOf(argument[0])!=-1 || argument[0] in this)
+        ) return exec_statement(argument)
         if(typeof argument=='string') return exec_statement(argument)
         return argument
     }
@@ -22,8 +33,8 @@ function callfunc(function_def, fcontext){
         var value=exec_statement(statement)
     
     function exec_statement(statement){
+        var value
         if(Array.isArray(statement)){
-            var value=undefined
             if(statement[0]=='if'){
                 var idx=1
                 while(true){
@@ -42,9 +53,11 @@ function callfunc(function_def, fcontext){
                 console.log(line)
             }else if(statement[0]=='block'){
                 for(var substatement of statement.slice(1)) value=exec_statement(substatement)
+            }else{
+                value='error: unknown statement: '+statement[0]
             }
         }else if(typeof statement=='string'){
-            var value=eval_statement(fcontext,statement)
+            value=eval_statement(fcontext,statement)
         }
         
         return value
@@ -87,6 +100,9 @@ var statements4=[
         ['print','123'],['print','456']
     ]],
     ['print',['if','true','"if returned this value"']],
+    // define and call a function (named mysum)
+    ['def_func',def_mysum],
+    ['print',['mysum',3,4]],
 ]
 /*
 [    
