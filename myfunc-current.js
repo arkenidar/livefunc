@@ -21,7 +21,7 @@ function callfunc(function_def, fcontext){
             return func(...args)
         }
 
-        var specials=['if','print','block'] // automatically add others. make it more extensible
+        var specials=['if','write','block'] // automatically add others. make it more extensible
         if(Array.isArray(argument) && argument.length>0 &&
         (specials.indexOf(argument[0])!=-1 || argument[0] in this)
         ) return exec_statement(argument)
@@ -48,7 +48,7 @@ function callfunc(function_def, fcontext){
                     value=handle_argument(statement[idx])
                     idx+=2
                 }
-            }else if(statement[0]=='print'){
+            }else if(statement[0]=='write'){
                 var line=handle_argument(statement[1])
                 console.log(line)
             }else if(statement[0]=='block'){
@@ -92,23 +92,23 @@ var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
 'mypow(base,exponent-1)*base']]
 
 var statements4=[
-    ['print','"abc"'], // passing a string
-    ['print','variable_test'], // passing a variable
-    ['print',[1,2,3]], // passing a list
-    ['if','true',['print','"if reached"']],
+    ['write','"abc"'], // passing a string
+    ['write','variable_test'], // passing a variable
+    ['write',[1,2,3]], // passing a list
+    ['if','true',['write','"if reached"']],
     ['if','true',['block', // codeblock test
-        ['print','123'],['print','456']
+        ['write','123'],['write','456']
     ]],
-    ['print',['if','true','"if returned this value"']],
+    ['write',['if','true','"if returned this value"']],
     // define and call a function (named mysum)
     ['def_func',def_mysum],
-    ['print',['mysum',3,4]],
+    ['write',['mysum',3,4]],
 ]
 /*
 [    
     ['assign','name','"Dario"'],
     ['assign','line',['strcat','"My name is "','name']],
-    ['print','line'],
+    ['write','line'],
 ]
 */
 
@@ -118,7 +118,7 @@ var statements5=[
             'exponent==0','1',
             'mypow(base,exponent-1)*base'],
     ],
-    ['print','returned'], // print and return
+    ['write','returned'], // write and return
 ]
 var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements2 }
 def_func(def_mypow)
