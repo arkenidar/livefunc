@@ -18,7 +18,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/myfunc-current.js"
+            "program": "${file}"
         }
     ]
 }

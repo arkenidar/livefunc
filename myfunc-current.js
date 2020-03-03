@@ -1,14 +1,22 @@
-// works in nodejs 13 + vscode debug .. or firefox console also
+// works in nodejs 13 + vscode debug ..
+// or firefox console also (safari support WIP)
 
 function def_func(function_def){
-    var defined=function defined(...farguments){
+    var defined=function defined(){
         var fcontext={}
-        for(var argidx in function_def.arguments) fcontext[function_def.arguments[argidx]]=farguments[argidx]
+        for(var argidx in arguments){
+            var key, value, idx
+            key=function_def.arguments[argidx]
+            idx=function_def.arguments.indexOf(key)
+            value=arguments[idx]
+            fcontext[key]=value
+        }
         fcontext[function_def.name]=defined
         return callfunc(function_def, fcontext)
     }
     // test the return with assignment even of anonymous functions
-    return this[function_def.name]=defined
+    if(typeof window=='undefined') var window=globalThis
+    return window[function_def.name]=defined
 }
 
 function callfunc(function_def, fcontext){
@@ -27,7 +35,7 @@ function callfunc(function_def, fcontext){
         if(typeof func=='function'){
             var args=argument.slice(1)
             args=args.map(exec_statement)
-            return func(...args)
+            return func.apply(this,args)
         }
 
         var specials=['if','write','block'] // automatically add others. make it more extensible
@@ -39,8 +47,10 @@ function callfunc(function_def, fcontext){
     }
 
     var value
-    for(statement of function_def.statements)
+    for(var statement_idx in function_def.statements){
+        var statement=function_def.statements[statement_idx]
         value=exec_statement(statement)
+    }
     return value
 
     function exec_statement(statement){
@@ -63,7 +73,8 @@ function callfunc(function_def, fcontext){
                 var line=exec_statement(statement[1])
                 console.log(line)
             }else if(statement[0]=='block'){
-                for(var substatement of statement.slice(1)) value=exec_statement(substatement)
+                var substatements=statement.slice(1)
+                for(var substatement_idx in substatements) value=exec_statement(substatements[substatement_idx])
             }else{
                 // generic or unrecognized statement
                 // statement as argument
@@ -94,13 +105,13 @@ var def_mysum={"name":"mysum","arguments":["x","y"],
 def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
 console.log(mysum(14,3))
 ////////////// pow
-var statements1=[`if(exponent<0) returned=1/mypow(base,-exponent)
-else if(exponent==0) returned=1
-else returned=mypow(base,exponent-1)*base`,
+var statements1=["if(exponent<0) returned=1/mypow(base,-exponent) \n\
+else if(exponent==0) returned=1 \n\
+else returned=mypow(base,exponent-1)*base",
 "returned"]
-var statements2=[`if(exponent<0) 1/mypow(base,-exponent)
-else if(exponent==0) 1
-else mypow(base,exponent-1)*base`]
+var statements2=["if(exponent<0) 1/mypow(base,-exponent) \n\
+else if(exponent==0) 1 \n\
+else mypow(base,exponent-1)*base"]
 var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
 'exponent==0','1',
 'mypow(base,exponent-1)*base']]
