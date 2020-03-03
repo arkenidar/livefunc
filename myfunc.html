@@ -1,3 +1,17 @@
 <meta charset="utf-8">
+<title>script runner</title>
+<div id="write_out">
+written output: <br>
+</div>
+<script>
+var line=1
+function write(){
+    var out=''
+    for(argument_idx in arguments) out+=arguments[argument_idx]+' '
+    document.all.write_out.innerHTML+=line+')) '+out+'<br>\n'
+    console.log.apply(this,arguments)
+    line++
+}
+</script>
 <script src="myfunc-current.js"></script>
 

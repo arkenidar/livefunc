@@ -1,6 +1,8 @@
 // works in nodejs 13 + vscode debug ..
 // or firefox console also (safari support WIP)
 
+if(typeof write=='undefined') write=console.log
+
 function def_func(function_def){
     var defined=function defined(){
         var fcontext={}
@@ -38,7 +40,7 @@ function callfunc(function_def, fcontext){
             return func.apply(this,args)
         }
 
-        var specials=['if','write','block'] // automatically add others. make it more extensible
+        var specials=['if','block'] // automatically add others. make it more extensible
         if(Array.isArray(argument) && argument.length>0 &&
         (specials.indexOf(argument[0])!=-1 || argument[0] in this)
         ) return exec_statement(argument)
@@ -69,9 +71,6 @@ function callfunc(function_def, fcontext){
                     value=exec_statement(statement[idx])
                     idx+=2
                 }
-            }else if(statement[0]=='write'){
-                var line=exec_statement(statement[1])
-                console.log(line)
             }else if(statement[0]=='block'){
                 var substatements=statement.slice(1)
                 for(var substatement_idx in substatements) value=exec_statement(substatements[substatement_idx])
@@ -103,7 +102,7 @@ var def_mysum={"name":"mysum","arguments":["x","y"],
 "statements":["x+y"]
 }
 def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
-console.log(mysum(14,3))
+write(mysum(14,3))
 ////////////// pow
 var statements1=["if(exponent<0) returned=1/mypow(base,-exponent) \n\
 else if(exponent==0) returned=1 \n\
@@ -148,8 +147,8 @@ var statements5=[
 ]
 var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements2 }
 def_func(def_mypow)
-console.log(mypow(2,3))
-console.log(mypow(2,-1))
+write(mypow(2,3))
+write(mypow(2,-1))
 
 var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
