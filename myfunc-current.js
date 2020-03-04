@@ -1,7 +1,15 @@
 // works in nodejs 13 + vscode debug ..
 // or firefox console also (safari support WIP)
 
-if(typeof write=='undefined') write=console.log
+function printout(){
+    var out=''
+    for(argument_idx in arguments) out+=arguments[argument_idx]+' '
+    print(out)
+}
+
+if(typeof writeout=='undefined')
+	if(typeof console!='undefined') writeout=console.log
+	else if(typeof print!='undefined') writeout=printout
 
 function def_func(function_def){
     var defined=function defined(){
@@ -17,7 +25,7 @@ function def_func(function_def){
         return callfunc(function_def, fcontext)
     }
     // test the return with assignment even of anonymous functions
-    if(typeof window=='undefined') var window=globalThis
+    if(typeof window=='undefined') var window=this
     return window[function_def.name]=defined
 }
 
@@ -102,7 +110,7 @@ var def_mysum={"name":"mysum","arguments":["x","y"],
 "statements":["x+y"]
 }
 def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
-write(mysum(14,3))
+writeout(mysum(14,3))
 ////////////// pow
 var statements1=["if(exponent<0) returned=1/mypow(base,-exponent) \n\
 else if(exponent==0) returned=1 \n\
@@ -116,24 +124,24 @@ var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
 'mypow(base,exponent-1)*base']]
 
 var statements4=[
-    ['write','"abc"'], // passing a string
-    ['console.log','"abc from console.log()"'], // todo: this should work too!
-    ['write','variable_test'], // passing a variable
-    ['write',[1,2,3]], // passing a list
-    ['if','true',['write','"if reached"']],
+    ['writeout','"abc"'], // passing a string
+    //['console.log','"abc from console.log()"'], // todo: this should work too!
+    ['writeout','variable_test'], // passing a variable
+    ['writeout',[1,2,3]], // passing a list
+    ['if','true',['writeout','"if reached"']],
     ['if','true',['block', // codeblock test
-        ['write','123'],['write','456']
+        ['writeout','123'],['writeout','456']
     ]],
-    ['write',['if','true','"if returned this value"']],
+    ['writeout',['if','true','"if returned this value"']],
     // define and call a function (named mysum)
     ['def_func',def_mysum],
-    ['write',['mysum',3,4]],
+    ['writeout',['mysum',3,4]],
 ]
 /*
 [    
     ['assign','name','"Dario"'],
     ['assign','line',['strcat','"My name is "','name']],
-    ['write','line'],
+    ['writeout','line'],
 ]
 */
 
@@ -143,12 +151,12 @@ var statements5=[
             'exponent==0','1',
             'mypow(base,exponent-1)*base'],
     ],
-    ['write','returned'], // write and return
+    ['writeout','returned'], // writeout and return
 ]
 var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements2 }
 def_func(def_mypow)
-write(mypow(2,3))
-write(mypow(2,-1))
+writeout(mypow(2,3))
+writeout(mypow(2,-1))
 
 var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
