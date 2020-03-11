@@ -169,3 +169,10 @@ var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
 var variable_test='a variable for testing'
 my()
+
+// from "lis.py" article https://norvig.com/lispy.html
+function multiply(a,b){return a*b}
+def_func({"name":"lispy","arguments":["r"],"statements":[
+    ["multiply","Math.PI",["multiply","args.r","args.r"]]
+]})
+writeout(lispy(10))
