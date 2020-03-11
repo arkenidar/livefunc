@@ -13,15 +13,15 @@ if(typeof writeout=='undefined')
 
 function def_func(function_def){
     var defined=function defined(){
-        var fcontext={}
+        var fcontext={args:{},defs:{}}
         for(var argidx in arguments){
             var key, value, idx
             key=function_def.arguments[argidx]
             idx=function_def.arguments.indexOf(key)
             value=arguments[idx]
-            fcontext[key]=value
+            fcontext.args[key]=value
         }
-        fcontext[function_def.name]=defined
+        fcontext.defs[function_def.name]=defined
         return callfunc(function_def, fcontext)
     }
     // test the return with assignment even of anonymous functions
@@ -98,8 +98,14 @@ function callfunc(function_def, fcontext){
     }
     function eval_statement(fcontext,statement){
         var value = (function(fcontext,statement){
-            for(variable in fcontext)
-              eval(variable+"="+fcontext[variable])
+            /*
+            for(variable in fcontext){
+                var to_eval=variable+"="+fcontext[variable]
+                eval(to_eval) // todo : remove
+            }
+            */
+            var args=fcontext.args
+            var defs=fcontext.defs
             return eval(statement)
           })(fcontext,statement)
         return value
@@ -107,21 +113,21 @@ function callfunc(function_def, fcontext){
 }
 ////////////// sum
 var def_mysum={"name":"mysum","arguments":["x","y"],
-"statements":["x+y"]
+"statements":["args.x+args.y"]
 }
 def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
 writeout(mysum(14,3))
 ////////////// pow
-var statements1=["if(exponent<0) returned=1/mypow(base,-exponent) \n\
-else if(exponent==0) returned=1 \n\
-else returned=mypow(base,exponent-1)*base",
+var statements1=["if(args.exponent<0) returned=1/defs.mypow(args.base,-args.exponent) \n\
+else if(args.exponent==0) returned=1 \n\
+else returned=defs.mypow(args.base,args.exponent-1)*args.base",
 "returned"]
-var statements2=["if(exponent<0) 1/mypow(base,-exponent) \n\
-else if(exponent==0) 1 \n\
-else mypow(base,exponent-1)*base"]
-var statements3=[['if','exponent<0','1/mypow(base,-exponent)',
-'exponent==0','1',
-'mypow(base,exponent-1)*base']]
+var statements2=["if(args.exponent<0) 1/defs.mypow(args.base,-args.exponent) \n\
+else if(args.exponent==0) 1 \n\
+else defs.mypow(args.base,args.exponent-1)*args.base"] // does not work
+var statements3=[['if','args.exponent<0','1/defs.mypow(args.base,-args.exponent)',
+'args.exponent==0','1',
+'defs.mypow(args.base,args.exponent-1)*args.base']]
 
 var statements4=[
     ['writeout','"abc"'], // passing a string
