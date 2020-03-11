@@ -104,8 +104,9 @@ function callfunc(function_def, fcontext){
                 eval(to_eval) // todo : remove
             }
             */
-            var args=fcontext.args
-            var defs=fcontext.defs
+            //var args=fcontext.args
+            //var defs=fcontext.defs
+            for(var variable in fcontext) this[variable]=fcontext[variable]
             return eval(statement)
           })(fcontext,statement)
         return value
