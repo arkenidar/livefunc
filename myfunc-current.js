@@ -107,18 +107,21 @@ function callfunc(function_def, fcontext){
             //var args=fcontext.args
             //var defs=fcontext.defs
             for(var variable in fcontext) this[variable]=fcontext[variable]
-            return eval_dotted(statement)//JSON.parse(statement)//eval(statement)
+            return myeval(statement)//JSON.parse(statement)//eval(statement)
           })(fcontext,statement)
         return value
     }
 }
-/*
+///*
 ////////////// sum
+sum=function(a,b){return a+b}
 var def_mysum={"name":"mysum","arguments":["x","y"],
-"statements":["args.x+args.y"]
-}
+"statements":[
+    ["sum","args.x","args.y"],
+]}
 def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
-writeout(mysum(14,3))
+assert(()=>17==mysum(14,3))
+///*
 ////////////// pow
 var statements1=["if(args.exponent<0) returned=1/defs.mypow(args.base,-args.exponent) \n\
 else if(args.exponent==0) returned=1 \n\
@@ -126,11 +129,29 @@ else returned=defs.mypow(args.base,args.exponent-1)*args.base",
 "returned"]
 var statements2=["if(args.exponent<0) 1/defs.mypow(args.base,-args.exponent) \n\
 else if(args.exponent==0) 1 \n\
-else defs.mypow(args.base,args.exponent-1)*args.base"] // does not work
-var statements3=[['if','args.exponent<0','1/defs.mypow(args.base,-args.exponent)',
-'args.exponent==0','1',
-'defs.mypow(args.base,args.exponent-1)*args.base']]
+else defs.mypow(args.base,args.exponent-1)*args.base"] // does not work, requires classic eval() for js parsing
 
+lessthan=function(a,b){return a<b}
+division=function(a,b){return a/b}
+multiplication=function(a,b){return a*b}
+equal=function(a,b){return a==b}
+subtraction=function(a,b){return a-b}
+var statements3=[['if',['lessthan','args.exponent','0'],
+
+//'1/defs.mypow(args.base,-args.exponent)'
+['division','1',['defs.mypow','args.base',['subtraction','0','args.exponent']]],
+
+['equal','args.exponent','0'],'1',
+
+//'defs.mypow(args.base,args.exponent-1)*args.base'
+['multiplication','args.base',['defs.mypow','args.base',['subtraction','args.exponent','1']]]
+
+]]
+var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements3 } // was 2
+def_func(def_mypow)
+assert(()=>mypow(2,3)==8)
+assert(()=>mypow(2,-1)==0.5)
+/*
 var statements4=[
     ['writeout','"abc"'], // passing a string
     //['console.log','"abc from console.log()"'], // todo: this should work too!
@@ -160,27 +181,24 @@ var statements5=[
     ],
     ['writeout','returned'], // writeout and return
 ]
-var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements2 }
-def_func(def_mypow)
-writeout(mypow(2,3))
-writeout(mypow(2,-1))
 
 var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
 var variable_test='a variable for testing'
 my()
-*/
+//*/
 // from "lis.py" article https://norvig.com/lispy.html
 //function multiplication(a,b){return a*b}
 multiplication=function(a,b){return a*b} // defined in global scope
 def_func({"name":"lispy","arguments":["r"],"statements":[
     ["multiplication","Math.PI",["multiplication","args.r","args.r"]]
 ]})
-writeout(lispy(10))
+//writeout(lispy(10)) // todo: assert this
 
 function assert(func){
     if(func()!==true)
         writeout('assertion failed: '+func)
+    console.log(''+func)
 }
 ///assert(()=>false) // assert test (assert should fail)
 
@@ -194,7 +212,16 @@ assert(()=>eval_dotted('Math.PI')==Math.PI)
 assert(()=>eval_dotted('multiplication')==multiplication)
 assert(()=>eval_dotted('multiplication')(2,3)==6)
 
+function myeval(what){
+    if(typeof what!='string') return what
+    try{
+        return JSON.parse(what)
+    }catch{
+        return eval_dotted(what)
+    }
+}
 function eval_dotted(str,pointed=globalThis){
+    //assert(()=>typeof str=='string')
     var path=str.split('.')
     for(var current of path){
         if(current in pointed)
