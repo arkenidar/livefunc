@@ -198,7 +198,7 @@ def_func({"name":"lispy","arguments":["r"],"statements":[
 function assert(func){
     if(func()!==true)
         writeout('assertion failed: '+func)
-    console.log(''+func)
+    writeout(''+func)
 }
 ///assert(()=>false) // assert test (assert should fail)
 
