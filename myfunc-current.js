@@ -12,6 +12,7 @@ if(typeof writeout=='undefined')
 	else if(typeof print!='undefined') writeout=printout
 
 def_func=function(function_def){ // must be global
+    function_def=json_filter(function_def) // this means function definition is valid JSON
     var defined=function defined(){
         var fcontext={args:{},defs:{}}
         for(var argidx in arguments){
@@ -190,10 +191,17 @@ my()
 // from "lis.py" article https://norvig.com/lispy.html
 //function multiplication(a,b){return a*b}
 multiplication=function(a,b){return a*b} // defined in global scope
-def_func({"name":"lispy","arguments":["r"],"statements":[
+var code={"name":"lispy","arguments":["r"],"statements":[
     ["multiplication","Math.PI",["multiplication","args.r","args.r"]]
-]})
-//writeout(lispy(10)) // todo: assert this
+]}
+function json_filter(code){
+    var json=JSON.stringify(code)
+    var parsed=JSON.parse(json)
+    //assert(()=>parsed==code)
+    return parsed    
+}
+def_func(json_filter(code))
+writeout(lispy(10)) // todo: assert this
 
 function assert(func){
     if(func()!==true)
