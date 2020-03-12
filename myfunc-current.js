@@ -8,8 +8,8 @@ function printout(){
 }
 
 if(typeof writeout=='undefined')
-	if(typeof console!='undefined') writeout=console.log
-	else if(typeof print!='undefined') writeout=printout
+if(typeof console!='undefined') writeout=console.log
+else if(typeof print!='undefined') writeout=printout
 
 def_func=function(function_def){ // must be global
     function_def=json_filter(function_def) // this means function definition is valid JSON
@@ -182,13 +182,18 @@ var simple_assign_test=[
 def_func({statements:simple_assign_test})()
 
 var statements5=[
-    ['assign','returned',
+    ['assign','"returned"',
+        /*
         ['if','exponent<0','1/mypow(base,-exponent)',
             'exponent==0','1',
             'mypow(base,exponent-1)*base'],
+        */
+       ['if','true','"true!"','"false!"']
     ],
     ['writeout','returned'], // writeout and return
+    'returned',
 ]
+writeout(def_func({statements:statements5})())
 
 var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
