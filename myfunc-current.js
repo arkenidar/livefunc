@@ -107,11 +107,12 @@ function callfunc(function_def, fcontext){
             //var args=fcontext.args
             //var defs=fcontext.defs
             for(var variable in fcontext) this[variable]=fcontext[variable]
-            return eval(statement)
+            return eval_dotted(statement)//JSON.parse(statement)//eval(statement)
           })(fcontext,statement)
         return value
     }
 }
+/*
 ////////////// sum
 var def_mysum={"name":"mysum","arguments":["x","y"],
 "statements":["args.x+args.y"]
@@ -144,13 +145,12 @@ var statements4=[
     ['def_func',def_mysum],
     ['writeout',['mysum',3,4]],
 ]
-/*
-[    
+
+var program_to_do=[ // add what is missing for this to work    
     ['assign','name','"Dario"'],
     ['assign','line',['strcat','"My name is "','name']],
     ['writeout','line'],
 ]
-*/
 
 var statements5=[
     ['assign','returned',
@@ -169,10 +169,38 @@ var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
 var variable_test='a variable for testing'
 my()
-
+*/
 // from "lis.py" article https://norvig.com/lispy.html
-function multiply(a,b){return a*b}
+//function multiplication(a,b){return a*b}
+multiplication=function(a,b){return a*b} // defined in global scope
 def_func({"name":"lispy","arguments":["r"],"statements":[
-    ["multiply","Math.PI",["multiply","args.r","args.r"]]
+    ["multiplication","Math.PI",["multiplication","args.r","args.r"]]
 ]})
 writeout(lispy(10))
+
+function assert(func){
+    if(func()!==true)
+        writeout('assertion failed: '+func)
+}
+///assert(()=>false) // assert test (assert should fail)
+
+///////writeout(eval_dotted('Math.PI'))
+assert(()=>eval_dotted('Math.PI')==Math.PI)
+
+//var namespace={...global,multiplication}
+//console.log('multiplication' in globalThis)
+//var func=eval_dotted('multiplication')
+///////writeout(func(2,3))
+assert(()=>eval_dotted('multiplication')==multiplication)
+assert(()=>eval_dotted('multiplication')(2,3)==6)
+
+function eval_dotted(str,pointed=globalThis){
+    var path=str.split('.')
+    for(var current of path){
+        if(current in pointed)
+        pointed=pointed[current]
+        else
+        writeout(current+' not found')
+    }
+    return pointed
+}
