@@ -11,7 +11,7 @@ if(typeof writeout=='undefined')
 	if(typeof console!='undefined') writeout=console.log
 	else if(typeof print!='undefined') writeout=printout
 
-function def_func(function_def){
+def_func=function(function_def){ // must be global
     var defined=function defined(){
         var fcontext={args:{},defs:{}}
         for(var argidx in arguments){
@@ -151,7 +151,7 @@ var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":state
 def_func(def_mypow)
 assert(()=>mypow(2,3)==8)
 assert(()=>mypow(2,-1)==0.5)
-/*
+// /*
 var statements4=[
     ['writeout','"abc"'], // passing a string
     //['console.log','"abc from console.log()"'], // todo: this should work too!
@@ -184,7 +184,7 @@ var statements5=[
 
 var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
-var variable_test='a variable for testing'
+variable_test='a variable for testing' // must be global to be found
 my()
 //*/
 // from "lis.py" article https://norvig.com/lispy.html
@@ -198,7 +198,7 @@ def_func({"name":"lispy","arguments":["r"],"statements":[
 function assert(func){
     if(func()!==true)
         writeout('assertion failed: '+func)
-    console.log(''+func)
+    writeout(''+func)
 }
 ///assert(()=>false) // assert test (assert should fail)
 
