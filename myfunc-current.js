@@ -167,12 +167,19 @@ var statements4=[
     ['def_func',def_mysum],
     ['writeout',['mysum',3,4]],
 ]
-
-var program_to_do=[ // add what is missing for this to work    
-    ['assign','name','"Dario"'],
-    ['assign','line',['strcat','"My name is "','name']],
-    ['writeout','line'],
+assign=function(destination,source){
+    globalThis[destination]=source
+}
+strcat=function(a,b){
+    return a+b
+}
+var simple_assign_test=[   
+    ['assign','"name"','"Dario"'],
+    ['assign','"phrase"',['strcat','"My name is "','name']],
+    ['writeout','phrase'],
 ]
+
+def_func({statements:simple_assign_test})()
 
 var statements5=[
     ['assign','returned',
