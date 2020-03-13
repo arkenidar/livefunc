@@ -230,13 +230,13 @@ var statements4=[
     // define and call a function (named mysum)
     
     // this works:
-    //['lassign','"locs.tempsum"',['defs.def_func',def_mysum]],
-    //['defs.writeout',['locs.tempsum',3,4]],
+    ['lassign','"locs.tempsum"',['defs.def_func',def_mysum]],
+    ['defs.writeout',['locs.tempsum',3,4]],
     
     // this should work too! : (possibly with function definition shared across statements)
     // BTW this works for globally defined functions
     ////['defs.def_func',def_mysum], // alredy called above
-    ['defs.writeout',['defs.globalThis.mysum',3,4]], // was: ref.mysum
+    //['defs.writeout',['defs.globalThis.mysum',3,4]], // was: ref.mysum
 
 ]
 
