@@ -44,12 +44,19 @@ function def_func(function_def){
             value=arguments[idx]
             fcontext.args[key]=value
         }
+
+        // todo: check this line.
+        // BTW it's needed for recursive calls
         fcontext.defs[function_def.name]=defined
+        
         return callfunc(function_def, fcontext)
     }
+    
     // test the return with assignment even of anonymous functions
-    if(typeof window=='undefined') var window=this
-    return window[function_def.name]=defined
+    // this works for globally defined functions
+    globalThis[function_def.name]=defined
+
+    return defined
 }
 
 function callfunc(function_def, fcontext){
@@ -101,7 +108,7 @@ function callfunc(function_def, fcontext){
                         if(current in pointed)
                         pointed=pointed[current]
                         else
-                        writeout(current+' not found',statement_to_exec)
+                        writeout('ERROR',current+' not found',statement_to_exec)
                     }
                     return pointed[last_in_path]=value
                 }
@@ -162,7 +169,7 @@ function callfunc(function_def, fcontext){
                             if(current in pointed)
                             pointed=pointed[current]
                             else
-                            writeout(current+' not found',statement)
+                            writeout('ERROR',current+' not found',statement)
                         }
                         return pointed
                     }
@@ -181,7 +188,7 @@ var def_mysum={"name":"mysum","arguments":["x","y"],
 "statements":[
     ["defs.sum","args.x","args.y"],
 ]}
-def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
+var mysum=def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
 assert(()=>17==mysum(14,3))
 ///*
 ////////////// pow
@@ -205,7 +212,7 @@ var statements3=[['if',['defs.lessthan','args.exponent','0'],
 
 ]]
 var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements3 } // was 2
-def_func(def_mypow)
+var mypow=def_func(def_mypow)
 assert(()=>mypow(2,3)==8)
 assert(()=>mypow(2,-1)==0.5)
 // /*
@@ -219,9 +226,18 @@ var statements4=[
         ['defs.writeout','123'],['defs.writeout','456']
     ]],
     ['defs.writeout',['if','true','"if returned this value"']],
+    
     // define and call a function (named mysum)
-    ['lassign','"locs.tempsum"',['defs.def_func',def_mysum]],
-    ['defs.writeout',['locs.tempsum',3,4]],
+    
+    // this works:
+    //['lassign','"locs.tempsum"',['defs.def_func',def_mysum]],
+    //['defs.writeout',['locs.tempsum',3,4]],
+    
+    // this should work too! : (possibly with function definition shared across statements)
+    // BTW this works for globally defined functions
+    ////['defs.def_func',def_mysum], // alredy called above
+    ['defs.writeout',['defs.globalThis.mysum',3,4]], // was: ref.mysum
+
 ]
 
 var simple_assign_test=[   
@@ -247,7 +263,7 @@ var statements5=[
 writeout(def_func({statements:statements5})())
 
 var def_my={"name":"my","arguments":[],"statements":statements4 }
-def_func(def_my)
+var my=def_func(def_my)
 my()
 
 // from "lis.py" article https://norvig.com/lispy.html
@@ -255,7 +271,7 @@ var code={"name":"lispy","arguments":["r"],"statements":[
     ["defs.multiplication","defs.globalThis.Math.PI",["defs.multiplication","args.r","args.r"]]
 ]}
 
-def_func(code) // was: json_filter(code)
+var lispy=def_func(code) // was: json_filter(code)
 writeout(lispy(10)) // todo: assert this
 
 function assert(func){
