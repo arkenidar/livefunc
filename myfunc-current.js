@@ -11,7 +11,23 @@ if(typeof writeout=='undefined')
 if(typeof console!='undefined') writeout=console.log
 else if(typeof print!='undefined') writeout=printout
 
-def_func=function(function_def){ // must be global
+function sum(a,b){return a+b}
+function lessthan(a,b){return a<b}
+function division(a,b){return a/b}
+function multiplication(a,b){return a*b}
+function equal(a,b){return a==b}
+function subtraction(a,b){return a-b}
+function gassign(destination,source){ // global scope assignment
+    globalThis[destination]=source
+}
+function strcat(a,b){
+    return a+b
+}
+var variable_test='a variable for testing'
+// keep it updated:
+var already_defined={globalThis,variable_test,def_func,writeout,sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
+
+function def_func(function_def){
     function json_filter(code){
         var json=JSON.stringify(code)
         var parsed=JSON.parse(json)
@@ -20,7 +36,7 @@ def_func=function(function_def){ // must be global
     }
     function_def=json_filter(function_def) // this means function definition is valid JSON
     var defined=function defined(){
-        var fcontext={args:{},defs:{}}
+        var fcontext={args:{},defs:{...already_defined},locs:{}}
         for(var argidx in arguments){
             var key, value, idx
             key=function_def.arguments[argidx]
@@ -70,41 +86,60 @@ function callfunc(function_def, fcontext){
     }
     return value
 
-    function exec_statement(statement){
+    function exec_statement(statement_to_exec){
         var value
-        if(Array.isArray(statement)){
-            if(statement[0]=='if'){
+        if(Array.isArray(statement_to_exec)){
+            if(statement_to_exec[0]=='lassign'){ // local assign
+                var destination=exec_statement(statement_to_exec[1])
+                var source=exec_statement(statement_to_exec[2])
+
+                function set_dotted(str,value,pointed=fcontext){
+                    //assert(()=>typeof str=='string')
+                    var path=str.split('.')
+                    var last_in_path = path.pop() // removes last item
+                    for(var current of path){
+                        if(current in pointed)
+                        pointed=pointed[current]
+                        else
+                        writeout(current+' not found',statement_to_exec)
+                    }
+                    return pointed[last_in_path]=value
+                }
+                //fcontext.locs[destination]=source
+                set_dotted(destination,source)
+            }else
+            if(statement_to_exec[0]=='if'){
                 var idx=1
                 while(true){
-                    if(!(idx in statement)) break
-                    if(idx+1 in statement){
-                        if(true==exec_statement(statement[idx])){
-                            value=exec_statement(statement[idx+1])
+                    if(!(idx in statement_to_exec)) break
+                    if(idx+1 in statement_to_exec){
+                        if(true==exec_statement(statement_to_exec[idx])){
+                            value=exec_statement(statement_to_exec[idx+1])
                             break
                         }
                     }else
-                    value=exec_statement(statement[idx])
+                    value=exec_statement(statement_to_exec[idx])
                     idx+=2
                 }
-            }else if(statement[0]=='block'){
-                var substatements=statement.slice(1)
+            }else if(statement_to_exec[0]=='block'){
+                var substatements=statement_to_exec.slice(1)
                 for(var substatement_idx in substatements) value=exec_statement(substatements[substatement_idx])
             }else{
                 // generic or unrecognized statement
                 // statement as argument
                 // todo: verify if proper
-                value=handle_argument(statement)
+                value=handle_argument(statement_to_exec)
             }
-        }else if(typeof statement=='string'){
-            value=eval_statement(fcontext,statement)
+        }else if(typeof statement_to_exec=='string'){
+            value=eval_statement(fcontext,statement_to_exec)
         }else{
-            value=statement
+            value=statement_to_exec
         }
         
         return value
     }
-    function eval_statement(fcontext,statement){
-        var value = (function(fcontext,statement){
+    function eval_statement(fcontext,statement_to_eval){
+        var value = (function(fcontext,statement_to_eval2){
             /*
             for(variable in fcontext){
                 var to_eval=variable+"="+fcontext[variable]
@@ -114,27 +149,27 @@ function callfunc(function_def, fcontext){
             //var args=fcontext.args
             //var defs=fcontext.defs
             for(var variable in fcontext) this[variable]=fcontext[variable]
-            return myeval(statement)//JSON.parse(statement)//eval(statement)
+            return myeval(statement_to_eval2)//JSON.parse(statement)//eval(statement)
             function myeval(what){
                 if(typeof what!='string') return what
                 try{
                     return JSON.parse(what)
                 }catch{
-                    function eval_dotted(str,pointed=globalThis){
+                    function eval_dotted(str,pointed=fcontext){
                         //assert(()=>typeof str=='string')
                         var path=str.split('.')
                         for(var current of path){
                             if(current in pointed)
                             pointed=pointed[current]
                             else
-                            writeout(current+' not found')
+                            writeout(current+' not found',statement)
                         }
                         return pointed
                     }
                     return eval_dotted(what)
                 }
             }
-          })(fcontext,statement)
+          })(fcontext,statement_to_eval)
         return value
     }
 }
@@ -142,10 +177,9 @@ main()
 function main(){
 ///*
 ////////////// sum
-sum=function(a,b){return a+b}
 var def_mysum={"name":"mysum","arguments":["x","y"],
 "statements":[
-    ["sum","args.x","args.y"],
+    ["defs.sum","args.x","args.y"],
 ]}
 def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
 assert(()=>17==mysum(14,3))
@@ -159,20 +193,15 @@ var statements2=["if(args.exponent<0) 1/defs.mypow(args.base,-args.exponent) \n\
 else if(args.exponent==0) 1 \n\
 else defs.mypow(args.base,args.exponent-1)*args.base"] // does not work, requires classic eval() for js parsing
 
-lessthan=function(a,b){return a<b}
-division=function(a,b){return a/b}
-multiplication=function(a,b){return a*b}
-equal=function(a,b){return a==b}
-subtraction=function(a,b){return a-b}
-var statements3=[['if',['lessthan','args.exponent','0'],
+var statements3=[['if',['defs.lessthan','args.exponent','0'],
 
 //'1/defs.mypow(args.base,-args.exponent)'
-['division','1',['defs.mypow','args.base',['subtraction','0','args.exponent']]],
+['defs.division','1',['defs.mypow','args.base',['defs.subtraction','0','args.exponent']]],
 
-['equal','args.exponent','0'],'1',
+['defs.equal','args.exponent','0'],'1',
 
 //'defs.mypow(args.base,args.exponent-1)*args.base'
-['multiplication','args.base',['defs.mypow','args.base',['subtraction','args.exponent','1']]]
+['defs.multiplication','args.base',['defs.mypow','args.base',['defs.subtraction','args.exponent','1']]]
 
 ]]
 var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":statements3 } // was 2
@@ -181,35 +210,30 @@ assert(()=>mypow(2,3)==8)
 assert(()=>mypow(2,-1)==0.5)
 // /*
 var statements4=[
-    ['writeout','"abc"'], // passing a string
+    ['defs.writeout','"abc"'], // passing a string
     //['console.log','"abc from console.log()"'], // todo: this should work too!
-    ['writeout','variable_test'], // passing a variable
-    ['writeout',[1,2,3]], // passing a list
-    ['if','true',['writeout','"if reached"']],
+    ['defs.writeout','defs.variable_test'], // passing a variable
+    ['defs.writeout',[1,2,3]], // passing a list
+    ['if','true',['defs.writeout','"if reached"']],
     ['if','true',['block', // codeblock test
-        ['writeout','123'],['writeout','456']
+        ['defs.writeout','123'],['defs.writeout','456']
     ]],
-    ['writeout',['if','true','"if returned this value"']],
+    ['defs.writeout',['if','true','"if returned this value"']],
     // define and call a function (named mysum)
-    ['def_func',def_mysum],
-    ['writeout',['mysum',3,4]],
+    ['lassign','"locs.tempsum"',['defs.def_func',def_mysum]],
+    ['defs.writeout',['locs.tempsum',3,4]],
 ]
-assign=function(destination,source){
-    globalThis[destination]=source
-}
-strcat=function(a,b){
-    return a+b
-}
+
 var simple_assign_test=[   
-    ['assign','"name"','"Dario"'],
-    ['assign','"phrase"',['strcat','"My name is "','name']],
-    ['writeout','phrase'],
+    ['lassign','"locs.name"','"Dario"'],
+    ['lassign','"locs.phrase"',['defs.strcat','"My name is "','locs.name']],
+    ['defs.writeout','locs.phrase'],
 ]
 
 def_func({statements:simple_assign_test})()
 
 var statements5=[
-    ['assign','"returned"',
+    ['lassign','"locs.returned"',
         /*
         ['if','exponent<0','1/mypow(base,-exponent)',
             'exponent==0','1',
@@ -217,21 +241,18 @@ var statements5=[
         */
        ['if','true','"true!"','"false!"']
     ],
-    ['writeout','returned'], // writeout and return
-    'returned',
+    ['defs.writeout','locs.returned'], // writeout and return
+    'locs.returned',
 ]
 writeout(def_func({statements:statements5})())
 
 var def_my={"name":"my","arguments":[],"statements":statements4 }
 def_func(def_my)
-variable_test='a variable for testing' // must be global to be found
 my()
-//*/
+
 // from "lis.py" article https://norvig.com/lispy.html
-//function multiplication(a,b){return a*b}
-multiplication=function(a,b){return a*b} // defined in global scope
 var code={"name":"lispy","arguments":["r"],"statements":[
-    ["multiplication","Math.PI",["multiplication","args.r","args.r"]]
+    ["defs.multiplication","defs.globalThis.Math.PI",["defs.multiplication","args.r","args.r"]]
 ]}
 
 def_func(code) // was: json_filter(code)
