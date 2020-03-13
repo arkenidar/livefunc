@@ -12,6 +12,12 @@ if(typeof console!='undefined') writeout=console.log
 else if(typeof print!='undefined') writeout=printout
 
 def_func=function(function_def){ // must be global
+    function json_filter(code){
+        var json=JSON.stringify(code)
+        var parsed=JSON.parse(json)
+        //assert(()=>parsed==code)
+        return parsed    
+    }
     function_def=json_filter(function_def) // this means function definition is valid JSON
     var defined=function defined(){
         var fcontext={args:{},defs:{}}
@@ -109,10 +115,31 @@ function callfunc(function_def, fcontext){
             //var defs=fcontext.defs
             for(var variable in fcontext) this[variable]=fcontext[variable]
             return myeval(statement)//JSON.parse(statement)//eval(statement)
+            function myeval(what){
+                if(typeof what!='string') return what
+                try{
+                    return JSON.parse(what)
+                }catch{
+                    function eval_dotted(str,pointed=globalThis){
+                        //assert(()=>typeof str=='string')
+                        var path=str.split('.')
+                        for(var current of path){
+                            if(current in pointed)
+                            pointed=pointed[current]
+                            else
+                            writeout(current+' not found')
+                        }
+                        return pointed
+                    }
+                    return eval_dotted(what)
+                }
+            }
           })(fcontext,statement)
         return value
     }
 }
+main()
+function main(){
 ///*
 ////////////// sum
 sum=function(a,b){return a+b}
@@ -206,13 +233,8 @@ multiplication=function(a,b){return a*b} // defined in global scope
 var code={"name":"lispy","arguments":["r"],"statements":[
     ["multiplication","Math.PI",["multiplication","args.r","args.r"]]
 ]}
-function json_filter(code){
-    var json=JSON.stringify(code)
-    var parsed=JSON.parse(json)
-    //assert(()=>parsed==code)
-    return parsed    
-}
-def_func(json_filter(code))
+
+def_func(code) // was: json_filter(code)
 writeout(lispy(10)) // todo: assert this
 
 function assert(func){
@@ -223,31 +245,12 @@ function assert(func){
 ///assert(()=>false) // assert test (assert should fail)
 
 ///////writeout(eval_dotted('Math.PI'))
-assert(()=>eval_dotted('Math.PI')==Math.PI)
+///assert(()=>eval_dotted('Math.PI')==Math.PI)
 
 //var namespace={...global,multiplication}
 //console.log('multiplication' in globalThis)
 //var func=eval_dotted('multiplication')
 ///////writeout(func(2,3))
-assert(()=>eval_dotted('multiplication')==multiplication)
-assert(()=>eval_dotted('multiplication')(2,3)==6)
-
-function myeval(what){
-    if(typeof what!='string') return what
-    try{
-        return JSON.parse(what)
-    }catch{
-        return eval_dotted(what)
-    }
-}
-function eval_dotted(str,pointed=globalThis){
-    //assert(()=>typeof str=='string')
-    var path=str.split('.')
-    for(var current of path){
-        if(current in pointed)
-        pointed=pointed[current]
-        else
-        writeout(current+' not found')
-    }
-    return pointed
+///assert(()=>eval_dotted('multiplication')==multiplication)
+///assert(()=>eval_dotted('multiplication')(2,3)==6)
 }
