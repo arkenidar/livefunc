@@ -24,8 +24,10 @@ function strcat(a,b){
     return a+b
 }
 var variable_test='a variable for testing'
+
+var gdefs={} // global defs
 // keep it updated:
-var already_defined={globalThis,variable_test,def_func,writeout,sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
+var already_defined={gdefs,globalThis,variable_test,def_func,writeout,sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
 
 function def_func(function_def){
     function json_filter(code){
@@ -54,15 +56,22 @@ function def_func(function_def){
     
     // test the return with assignment even of anonymous functions
     // this works for globally defined functions
-    globalThis[function_def.name]=defined
+    /////globalThis[function_def.name]=defined // seems unnecessary
+    gdefs[function_def.name]=defined
 
     return defined
 }
 
-function callfunc(function_def, fcontext){
+function callfunc(function_def, fcontext){ // use this more for sharing context TODO
     function handle_argument(argument){
+        
+        try{
+        
         if(typeof argument=='string') return eval_statement(fcontext,argument)
         
+        if(argument[0]=='quote')
+            return argument[1] // TODO (seems unecessary)
+
         // bad for use of eval but quick to implement
         ///var func=eval(argument[0])
         var func // function or not
@@ -84,6 +93,10 @@ function callfunc(function_def, fcontext){
         ) return exec_statement(argument)
 
         return argument
+    
+        }catch{
+            return undefined // TODO
+        }
     }
 
     var value
@@ -96,6 +109,10 @@ function callfunc(function_def, fcontext){
     function exec_statement(statement_to_exec){
         var value
         if(Array.isArray(statement_to_exec)){
+            if(statement_to_exec[0]=='quote'){
+                //throw
+                value=statement_to_exec[1]
+            }else
             if(statement_to_exec[0]=='lassign'){ // local assign
                 var destination=exec_statement(statement_to_exec[1])
                 var source=exec_statement(statement_to_exec[2])
@@ -108,7 +125,10 @@ function callfunc(function_def, fcontext){
                         if(current in pointed)
                         pointed=pointed[current]
                         else
-                        writeout('ERROR',current+' not found',statement_to_exec)
+                        {// set dotted
+                        writeout('ERROR',current+' not found','('+str+')',statement_to_exec)
+                        throw statement_to_exec
+                        }
                     }
                     return pointed[last_in_path]=value
                 }
@@ -169,7 +189,10 @@ function callfunc(function_def, fcontext){
                             if(current in pointed)
                             pointed=pointed[current]
                             else
-                            writeout('ERROR',current+' not found',statement)
+                            {// eval dotted
+                            writeout('ERROR',current+' not found','('+str+')',JSON.stringify(statement))
+                            throw statement
+                            }
                         }
                         return pointed
                     }
@@ -182,7 +205,21 @@ function callfunc(function_def, fcontext){
 }
 main()
 function main(){
-///*
+
+function exec(statements,arguments={}){
+    return def_func({statements,arguments})()
+}
+
+exec([
+    ['defs.writeout',
+    ['quote',
+    ['defs.multiplication',2,3]]
+    ],
+    ['defs.writeout',
+    ['defs.multiplication',2,3],
+    ],
+])
+
 ////////////// sum
 var def_mysum={"name":"mysum","arguments":["x","y"],
 "statements":[
@@ -228,11 +265,14 @@ var statements4=[
     ['defs.writeout',['if','true','"if returned this value"']],
     
     // define and call a function (named mysum)
-    
+    ['defs.def_func',def_mysum],
+    ['defs.writeout',['defs.gdefs.mysum',3,4]], // was: locs.tempsum // does not work (NOW WORKS)
     // this works:
     ['lassign','"locs.tempsum"',['defs.def_func',def_mysum]],
-    ['defs.writeout',['locs.tempsum',3,4]],
-    
+    ['defs.writeout',['locs.tempsum',3,4]], // locs.tempsum works
+    // this works too
+    ['defs.writeout',['defs.sum',3,4]],
+
     // this should work too! : (possibly with function definition shared across statements)
     // BTW this works for globally defined functions
     ////['defs.def_func',def_mysum], // alredy called above
