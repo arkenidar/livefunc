@@ -13,10 +13,16 @@ if(typeof writeout=='undefined')
 if(typeof console!='undefined') writeout=console.log
 else if(typeof print!='undefined') writeout=printout
 
-function input(message){
-    if(typeof prompt!="undefined") return prompt(message)
-    if(message!=undefined) writeout(message)
-    return '[["defs.sum",1,2]]' // fake input for a REPL
+function input(question){
+    // web-browser's prompt() function
+    if(typeof prompt!="undefined") return prompt(question)
+    
+    // npm module
+    var get_line=require('readline-sync')
+    return get_line.question(question+" ")
+
+    //if(question!=undefined) writeout(question)
+    //return '[["defs.sum",1,2]]' // fake input for a REPL
 }
 function sum(a,b){return a+b}
 function lessthan(a,b){return a<b}
@@ -148,7 +154,7 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
                     }
                     return pointed[last_in_path]=value
                 }
-                //fcontext.locs[destination]=source
+                //fcontext.locs[destination]=source // replaced by set_dotted()
                 set_dotted(destination,source)
             }else
             if(statement_to_exec[0]=='if'){
@@ -228,7 +234,7 @@ function repl_tests(){
     ]})()
 }
 repl_tests()
-main()
+//main()
 function main(){
 
 already_defined.exec([
