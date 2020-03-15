@@ -24,7 +24,19 @@ function input(question){
     
     // npm module
     var get_line=require('readline-sync')
-    return get_line.question(question+" ")
+    var string=''
+    while(true){
+        var got_line=get_line.question(string==''?question+" ":'...')
+        if(got_line[got_line.length-1]=='\\'){
+            string+=got_line.slice(0,-1)+'\n'
+        }
+        else{
+            string+=got_line
+            break
+        }
+    }
+    return string
+    //return get_line.question(question+" ")
 
     //if(question!=undefined) writeout(question)
     //return '[["defs.sum",1,2]]' // fake input for a REPL
@@ -263,8 +275,9 @@ def_func({statements:
 /*
 [["defs.multiplication",4,6]]
 
-[["lassign","\"locs.x\"",5],
-["defs.writeout","locs.x"]
+# with slashes at end-of-line multiline works
+[["lassign","\"locs.x\"",5],\
+["defs.writeout","locs.x"]\
 ]
 
 [
