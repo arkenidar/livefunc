@@ -90,9 +90,6 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
         try{
         
         if(typeof argument=='string') return eval_statement(fcontext,argument)
-        
-        if(argument[0]=='quote')
-            return argument[1] // TODO (seems unecessary)
 
         // bad for use of eval but quick to implement
         ///var func=eval(argument[0])
@@ -109,15 +106,17 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
             return func.apply(this,args)
         }
 
-        var specials=['if','block'] // automatically add others. make it more extensible
+        /*
+        var specials=['if','block','quote','lassign','while'] // automatically add others. make it more extensible
         if(Array.isArray(argument) && argument.length>0 &&
         (specials.indexOf(argument[0])!=-1 || argument[0] in this)
         ) return exec_statement(argument)
-
+        */
+       
         return argument
     
         }catch{
-            return undefined // TODO
+            return undefined // TODO return in case of caught exception
         }
     }
 
@@ -131,6 +130,7 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
     function exec_statement(statement_to_exec){
         var value
         if(Array.isArray(statement_to_exec)){
+            // quote,lassign,if,block
             if(statement_to_exec[0]=='quote'){
                 //throw
                 value=statement_to_exec[1]
@@ -234,9 +234,10 @@ function repl_tests(){
     ]})()
 }
 repl_tests()
-//main()
+main()
 function main(){
 
+// [quote] test
 already_defined.exec([
     ['defs.writeout',
     ['quote',
@@ -246,6 +247,8 @@ already_defined.exec([
     ['defs.multiplication',2,3],
     ],
 ])
+
+//return // return main()
 
 ////////////// sum
 var def_mysum={"name":"mysum","arguments":["x","y"],
