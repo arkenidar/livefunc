@@ -49,7 +49,10 @@ function exec(statements,arguments={}){
 
 var gdefs={} // global defs
 // keep it updated:
-var already_defined={exec,input,gdefs,globalThis,variable_test,def_func,writeout,sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
+var already_defined={
+    main, // for [["defs.main"]] in REPL
+exec,input,gdefs,globalThis,variable_test,def_func,writeout,
+sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
 return already_defined
 }
 
