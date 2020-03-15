@@ -130,9 +130,13 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
     function exec_statement(statement_to_exec){
         var value
         if(Array.isArray(statement_to_exec)){
-            // quote,lassign,if,block
+            // while,quote,lassign,if,block
+            if(statement_to_exec[0]=='while'){
+                while(exec_statement(statement_to_exec[1]))
+                exec_statement(statement_to_exec[2])
+            }else
             if(statement_to_exec[0]=='quote'){
-                //throw
+                //throw // to notice execution reaching this line
                 value=statement_to_exec[1]
             }else
             if(statement_to_exec[0]=='lassign'){ // local assign
@@ -228,13 +232,55 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
 
 function repl_tests(){
     def_func({statements:[
+    ['while',1,
     ['defs.writeout',
         ['defs.exec',['defs.globalThis.JSON.parse',['defs.input','"JSON statements?"']]],
     ]
+    ] // close while
     ]})()
 }
-repl_tests()
-main()
+//repl_tests()
+
+def_func({statements:
+[
+    ["lassign","\"locs.x\"",5],
+    ["defs.writeout","locs.x"]
+]})()
+/*
+[["defs.multiplication",4,6]]
+
+[["lassign","\"locs.x\"",5],
+["defs.writeout","locs.x"]
+]
+
+[
+    ["lassign","\"locs.x\"",5],
+    ["defs.writeout","locs.x"]
+]
+
+# one line, valid json
+[["lassign","\"locs.x\"",5],["defs.writeout","locs.x"]]
+
+[["lassign","\"locs.x\"",6],["defs.writeout","locs.x"]]
+
+# no
+[["lassign","\"locs.x\"",6]]
+[["defs.writeout","locs.x"]]
+
+# yes
+[["lassign","\"defs.gdefs.x\"",10]]
+[["defs.writeout","defs.gdefs.x"]]
+*/
+
+// gdefs allow to save state across invocations
+// this was mean to be done by local variables perhaps
+
+// - this call sets a state
+def_func({statements:[["lassign",'"defs.gdefs.x"',10]]})()
+// - this call gets a state
+def_func({statements:[["defs.writeout","defs.gdefs.x"]]})()
+
+//main()
 function main(){
 
 // [quote] test
