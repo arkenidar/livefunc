@@ -1,6 +1,8 @@
 // works in nodejs 13 + vscode debug ..
 // or firefox console also (safari support WIP)
 
+function definitions_module(){
+
 function printout(){
     var out=''
     for(argument_idx in arguments) out+=arguments[argument_idx]+' '
@@ -11,6 +13,10 @@ if(typeof writeout=='undefined')
 if(typeof console!='undefined') writeout=console.log
 else if(typeof print!='undefined') writeout=printout
 
+function input(prompt=""){
+    if(prompt!="") writeout(prompt)
+    return '["sum",1,2]' // fake input for a REPL
+}
 function sum(a,b){return a+b}
 function lessthan(a,b){return a<b}
 function division(a,b){return a/b}
@@ -28,6 +34,11 @@ var variable_test='a variable for testing'
 var gdefs={} // global defs
 // keep it updated:
 var already_defined={gdefs,globalThis,variable_test,def_func,writeout,sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
+return already_defined
+}
+
+var already_defined=definitions_module()
+//var gdefs=already_defined.gdefs // global defs
 
 function def_func(function_def){
     function json_filter(code){
@@ -57,7 +68,7 @@ function def_func(function_def){
     // test the return with assignment even of anonymous functions
     // this works for globally defined functions
     /////globalThis[function_def.name]=defined // seems unnecessary
-    gdefs[function_def.name]=defined
+    already_defined.gdefs[function_def.name]=defined // disabled
 
     return defined
 }
