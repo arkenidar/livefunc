@@ -232,15 +232,21 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
 
 function repl_tests(){
     def_func({statements:[
-    ['while',1,
+    ['defs.writeout',['quote','[[\"defs.gdefs.qrepl\"]]\n to Quit this REPL"']],
+    ['defs.def_func',{name:"qrepl",statements:[["lassign",'"defs.gdefs.repl_active"',0]]}],
+    ["lassign",'"defs.gdefs.repl_active"',1], // [["lassign","\"defs.gdefs.repl_active\"",0]] to exit
+    ['while','defs.gdefs.repl_active',
     ['defs.writeout',
         ['defs.exec',['defs.globalThis.JSON.parse',['defs.input','"JSON statements?"']]],
-    ]
-    ] // close while
+    ],
+    //["lassign",'"defs.gdefs.repl_active"',0] // temp.
+    ], // close while
+    ['defs.writeout','"quitting..."'],
     ]})()
 }
-//repl_tests()
-
+repl_tests()
+//global_state_tests()
+function global_state_tests(){
 def_func({statements:
 [
     ["lassign","\"locs.x\"",5],
@@ -279,6 +285,7 @@ def_func({statements:
 def_func({statements:[["lassign",'"defs.gdefs.x"',10]]})()
 // - this call gets a state
 def_func({statements:[["defs.writeout","defs.gdefs.x"]]})()
+}
 
 //main()
 function main(){
