@@ -15,7 +15,12 @@ else if(typeof print!='undefined') writeout=printout
 
 function input(question){
     // web-browser's prompt() function
-    if(typeof prompt!="undefined") return prompt(question)
+    if(typeof prompt!="undefined"){
+        var answer=prompt(question) // asks for input
+        if(answer==undefined) gdefs.repl_active=0 // quits the repl, if cancelled
+        writeout('#',answer) // writes what was inputted
+        return answer
+    }
     
     // npm module
     var get_line=require('readline-sync')
