@@ -13,9 +13,10 @@ if(typeof writeout=='undefined')
 if(typeof console!='undefined') writeout=console.log
 else if(typeof print!='undefined') writeout=printout
 
-function input(prompt=""){
-    if(prompt!="") writeout(prompt)
-    return '["sum",1,2]' // fake input for a REPL
+function input(message){
+    if(typeof prompt!="undefined") return prompt(message)
+    if(message!=undefined) writeout(message)
+    return '[["defs.sum",1,2]]' // fake input for a REPL
 }
 function sum(a,b){return a+b}
 function lessthan(a,b){return a<b}
@@ -30,10 +31,14 @@ function strcat(a,b){
     return a+b
 }
 var variable_test='a variable for testing'
+function exec(statements,arguments={}){
+    return def_func({statements,arguments})()
+}
+
 
 var gdefs={} // global defs
 // keep it updated:
-var already_defined={gdefs,globalThis,variable_test,def_func,writeout,sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
+var already_defined={exec,input,gdefs,globalThis,variable_test,def_func,writeout,sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
 return already_defined
 }
 
@@ -214,14 +219,19 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
         return value
     }
 }
+
+function repl_tests(){
+    def_func({statements:[
+    ['defs.writeout',
+        ['defs.exec',['defs.globalThis.JSON.parse',['defs.input','"JSON statements?"']]],
+    ]
+    ]})()
+}
+repl_tests()
 main()
 function main(){
 
-function exec(statements,arguments={}){
-    return def_func({statements,arguments})()
-}
-
-exec([
+already_defined.exec([
     ['defs.writeout',
     ['quote',
     ['defs.multiplication',2,3]]
@@ -238,7 +248,7 @@ var def_mysum={"name":"mysum","arguments":["x","y"],
 ]}
 var mysum=def_func(def_mysum) // it can be defined with ['def_func',def_mysum], also
 assert(()=>17==mysum(14,3))
-///*
+
 ////////////// pow
 var statements1=["if(args.exponent<0) returned=1/defs.mypow(args.base,-args.exponent) \n\
 else if(args.exponent==0) returned=1 \n\
@@ -263,10 +273,10 @@ var def_mypow={"name":"mypow","arguments":["base","exponent"],"statements":state
 var mypow=def_func(def_mypow)
 assert(()=>mypow(2,3)==8)
 assert(()=>mypow(2,-1)==0.5)
-// /*
+/////
 var statements4=[
     ['defs.writeout','"abc"'], // passing a string
-    //['console.log','"abc from console.log()"'], // todo: this should work too!
+    ['defs.globalThis.console.log','"abc from console.log()"'], // TODO: this should work too!
     ['defs.writeout','defs.variable_test'], // passing a variable
     ['defs.writeout',[1,2,3]], // passing a list
     ['if','true',['defs.writeout','"if reached"']],
