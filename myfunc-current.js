@@ -81,6 +81,8 @@ return already_defined
 var already_defined=definitions_module()
 //var gdefs=already_defined.gdefs // global defs
 
+var fcontext={args:{},defs:{...already_defined},locs:{}}
+
 function def_func(function_def){
     function json_filter(code){
         var json=JSON.stringify(code)
@@ -90,7 +92,6 @@ function def_func(function_def){
     }
     function_def=json_filter(function_def) // this means function definition is valid JSON
     var defined=function defined(){
-        var fcontext={args:{},defs:{...already_defined},locs:{}}
         for(var argidx in arguments){
             var key, value, idx
             key=function_def.arguments[argidx]
@@ -114,7 +115,7 @@ function def_func(function_def){
     return defined
 }
 
-function callfunc(function_def, fcontext){ // use this more for sharing context TODO
+function callfunc(function_def, fcontext=fcontext){ // use this more for sharing context TODO
     function handle_argument(argument){
         
         try{
@@ -133,8 +134,10 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
         if(typeof func=='function'){
             var args=argument.slice(1)
             args=args.map(exec_statement)
-            return func.apply(this,args)
-        }
+            var argument_returned=func.apply(this,args)
+            if(argument_returned===null) throw new Error('ARN!!')
+            return argument_returned
+        }else console.log('not a function')
 
         /*
         var specials=['if','block','quote','lassign','while'] // automatically add others. make it more extensible
@@ -144,9 +147,11 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
         */
        
         return argument
+        //throw ['argument...',argument]
     
         }catch(exception){
-            //writeout('caught exception',exception)
+            writeout('caught exception (re-throwing it)')//,['quote',exception])
+            throw exception
             return undefined // TODO return in case of caught exception
         }
     }
@@ -174,7 +179,7 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
                 var destination=exec_statement(statement_to_exec[1])
                 var source=exec_statement(statement_to_exec[2])
 
-                function set_dotted(str,value,pointed=fcontext){
+                function dotted_set(str,value,pointed=fcontext){
                     //assert(()=>typeof str=='string')
                     var path=str.split('.')
                     var last_in_path = path.pop() // removes last item
@@ -183,14 +188,14 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
                         pointed=pointed[current]
                         else
                         {// set dotted
-                        writeout('ERROR',current+' not found','('+str+')',statement_to_exec)
+                        writeout('ERROR:',current+' not found','('+str+')',statement_to_exec)
                         throw statement_to_exec
                         }
                     }
                     return pointed[last_in_path]=value
                 }
                 //fcontext.locs[destination]=source // replaced by set_dotted()
-                value=set_dotted(destination,source)
+                value=dotted_set(destination,source)
             }else
             if(statement_to_exec[0]=='if'){
                 var idx=1
@@ -208,7 +213,7 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
             }else if(statement_to_exec[0]=='block'){
                 var statements=statement_to_exec.slice(1)
                 for(var statement of statements){
-                    // todo: handle returns, breaks, continue, yields, etc
+                    // TODO: handle return/yield, break/continue, try/catch, etc
                     value=exec_statement(statement)
                 }
             }else{
@@ -237,28 +242,43 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
             //var defs=fcontext.defs
             for(var variable in fcontext) this[variable]=fcontext[variable]
             return myeval(statement_to_eval2)//JSON.parse(statement)//eval(statement)
-            function myeval(what){
-                if(typeof what!='string') return what
-                try{
-                    return JSON.parse(what)
-                }catch{
-                    function eval_dotted(str,pointed=fcontext){
-                        //assert(()=>typeof str=='string')
-                        var path=str.split('.')
-                        for(var current of path){
-                            if(current in pointed)
-                            pointed=pointed[current]
-                            else
-                            {// eval dotted
-                            writeout('ERROR',current+' not found','('+str+')',JSON.stringify(statement))
-                            throw statement
-                            }
-                        }
-                        return pointed
+            function dotted_get(str,pointed=fcontext){ // get
+                //assert(()=>typeof str=='string')
+                var path=str.split('.')
+                for(var current of path){
+                    if(current in pointed)
+                    pointed=pointed[current]
+                    else
+                    {// eval dotted
+                    writeout('get ERROR!',current+' not found','('+str+')',JSON.stringify(statement))
+                    throw statement
                     }
-                    return eval_dotted(what)
                 }
-            }
+                return pointed
+            } // closes eval_dotted()
+            function myeval(what_to_evaluate){
+                if(typeof what_to_evaluate!='string') return what_to_evaluate
+                try{
+                    var parsed=JSON.parse(what_to_evaluate)
+                    return parsed
+                }catch{
+                try{
+                    var evaluated=dotted_get(what_to_evaluate)
+                    return evaluated
+                }
+                catch{
+                    /*
+                    try{
+                    var parsed=JSON.parse(what_to_evaluate)
+                    return parsed
+                    }
+                    catch{
+                        return 'invalid statement'
+                    }*/
+                    return 'invalid statement'
+                }
+                } //closes catch
+            } // closes myeval()
           })(fcontext,statement_to_eval)
         return value
     }
@@ -271,8 +291,10 @@ function repl_tests(){
     ["lassign",'"defs.gdefs.repl_active"',1], // [["lassign","\"defs.gdefs.repl_active\"",0]] to exit
     ['while','defs.gdefs.repl_active',
     ['defs.writeout',
+        ['defs.globalThis.JSON.stringify',
         ['defs.exec_one',
             ['defs.globalThis.JSON.parse',['defs.input','"JSON statement?"']]
+        ]
         ],
     ],
     //["lassign",'"defs.gdefs.repl_active"',0] // temp.
@@ -281,12 +303,18 @@ function repl_tests(){
     ]})()
 }
 repl_tests()
+//console.log(already_defined.exec_one('[1,2,3]'))
+//console.log(already_defined.exec_one('"abc"'))
+//console.log(already_defined.exec_one("'abc'"))
+
 //global_state_tests()
 function global_state_tests(){
+
+if(true)
 def_func({statements:
 [
-    ["lassign","\"locs.x\"",5],
-    ["defs.writeout","locs.x"]
+    ["lassign","\"x\"",5],
+    ["defs.writeout","x"]
 ]})()
 /*
 [["defs.multiplication",4,6]]
@@ -319,9 +347,15 @@ def_func({statements:
 // this was mean to be done by local variables perhaps
 
 // - this call sets a state
-def_func({statements:[["lassign",'"defs.gdefs.x"',10]]})()
+/////def_func({statements:[["lassign",'"defs.gdefs.x"',10]]})()
 // - this call gets a state
-def_func({statements:[["defs.writeout","defs.gdefs.x"]]})()
+////def_func({statements:[["defs.writeout","defs.gdefs.x"]]})()
+
+// - this call sets a state
+already_defined.exec_one(["lassign",'"y"',10])
+// - this call gets a state
+already_defined.def_func({statements:[["defs.writeout",'y']]})()
+//["lassign",'"y"',10]
 }
 
 //main()
