@@ -302,10 +302,20 @@ function repl_tests(){
     ['defs.writeout','"quitting..."'],
     ]})()
 }
-repl_tests()
-//console.log(already_defined.exec_one('[1,2,3]'))
+//repl_tests()
+exec_tests()
+function exec_tests(){
+console.log(already_defined.exec_one(["quote",[1,2,3]]))
+console.log(already_defined.exec_one(["quote","abc"]))
 //console.log(already_defined.exec_one('"abc"'))
-//console.log(already_defined.exec_one("'abc'"))
+console.log(already_defined.exec_one(["block",["lassign",["quote","abc_var2"],["quote","text"]],null]))
+console.log(already_defined.exec_one("abc_var2"))
+console.log(already_defined.exec_one("defs.globalThis.Math.PI"))
+var abc_var1='test succeeded'
+fcontext.injected=abc_var1
+console.log(fcontext.defs.exec_one("injected"))
+// fcontext.defs or already_defined
+}
 
 //global_state_tests()
 function global_state_tests(){
