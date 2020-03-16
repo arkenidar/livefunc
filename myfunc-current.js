@@ -26,7 +26,14 @@ function input(question){
     var get_line=require('readline-sync')
     var string=''
     while(true){
+        try{
         var got_line=get_line.question(string==''?question+" ":'...')
+        }
+        catch(exception){
+            writeout('caught exception',exception)
+            gdefs.repl_active=0 // quits the repl
+            return undefined
+        }
         if(got_line[got_line.length-1]=='\\'){
             string+=got_line.slice(0,-1)+'\n'
         }
@@ -135,7 +142,8 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
        
         return argument
     
-        }catch{
+        }catch(exception){
+            //writeout('caught exception',exception)
             return undefined // TODO return in case of caught exception
         }
     }
@@ -195,8 +203,11 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
                     idx+=2
                 }
             }else if(statement_to_exec[0]=='block'){
-                var substatements=statement_to_exec.slice(1)
-                for(var substatement_idx in substatements) value=exec_statement(substatements[substatement_idx])
+                var statements=statement_to_exec.slice(1)
+                for(var statement of statements){
+                    // todo: handle returns, breaks, continue, yields, etc
+                    value=exec_statement(statement)
+                }
             }else{
                 // generic or unrecognized statement
                 // statement as argument
