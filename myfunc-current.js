@@ -64,13 +64,16 @@ var variable_test='a variable for testing'
 function exec(statements,arguments={}){
     return def_func({statements,arguments})()
 }
+function exec_one(statement,arguments={}){
+    return def_func({statements:[statement],arguments})()
+}
 
 
 var gdefs={} // global defs
 // keep it updated:
 var already_defined={
     main, // for [["defs.main"]] in REPL
-exec,input,gdefs,globalThis,variable_test,def_func,writeout,
+exec,exec_one,input,gdefs,globalThis,variable_test,def_func,writeout,
 sum,lessthan,division,multiplication,equal,subtraction,gassign,strcat}
 return already_defined
 }
@@ -263,12 +266,14 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
 
 function repl_tests(){
     def_func({statements:[
-    ['defs.writeout',['quote','[[\"defs.gdefs.qrepl\"]]\n to Quit this REPL"']],
+    ['defs.writeout',['quote','[\"defs.gdefs.qrepl\"] <- to Quit this REPL"']],
     ['defs.def_func',{name:"qrepl",statements:[["lassign",'"defs.gdefs.repl_active"',0]]}],
     ["lassign",'"defs.gdefs.repl_active"',1], // [["lassign","\"defs.gdefs.repl_active\"",0]] to exit
     ['while','defs.gdefs.repl_active',
     ['defs.writeout',
-        ['defs.exec',['defs.globalThis.JSON.parse',['defs.input','"JSON statements?"']]],
+        ['defs.exec_one',
+            ['defs.globalThis.JSON.parse',['defs.input','"JSON statement?"']]
+        ],
     ],
     //["lassign",'"defs.gdefs.repl_active"',0] // temp.
     ], // close while
