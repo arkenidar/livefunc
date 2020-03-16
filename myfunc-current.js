@@ -179,7 +179,7 @@ function callfunc(function_def, fcontext){ // use this more for sharing context 
                     return pointed[last_in_path]=value
                 }
                 //fcontext.locs[destination]=source // replaced by set_dotted()
-                set_dotted(destination,source)
+                value=set_dotted(destination,source)
             }else
             if(statement_to_exec[0]=='if'){
                 var idx=1
