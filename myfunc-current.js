@@ -305,15 +305,16 @@ function repl_tests(){
 //repl_tests()
 exec_tests()
 function exec_tests(){
-console.log(already_defined.exec_one(["quote",[1,2,3]]))
-console.log(already_defined.exec_one(["quote","abc"]))
-//console.log(already_defined.exec_one('"abc"'))
-console.log(already_defined.exec_one(["block",["lassign",["quote","abc_var2"],["quote","text"]],null]))
-console.log(already_defined.exec_one("abc_var2"))
-console.log(already_defined.exec_one("defs.globalThis.Math.PI"))
+writeout("exec_tests() in execution")
+writeout(already_defined.exec_one(["quote",[1,2,3]]))
+writeout(already_defined.exec_one(["quote","abc"]))
+//writeout(already_defined.exec_one('"abc"'))
+writeout(already_defined.exec_one(["block",["lassign",["quote","abc_var2"],["quote","text"]],null]))
+writeout(already_defined.exec_one("abc_var2"))
+writeout(already_defined.exec_one("defs.globalThis.Math.PI"))
 var abc_var1='test succeeded'
 fcontext.injected=abc_var1
-console.log(fcontext.defs.exec_one("injected"))
+writeout(fcontext.defs.exec_one("injected"))
 // fcontext.defs or already_defined
 }
 
